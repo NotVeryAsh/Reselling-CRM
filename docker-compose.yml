@@ -1,0 +1,57 @@
+name: reselling
+services:
+    php:
+        image: php-8.3
+        build:
+            dockerfile: ./docker/Dockerfile
+        volumes:
+            - ./:/app
+        ports:
+            - '9000:9000'
+        networks:
+            - app
+        command: ['php', 'artisan', 'serve', '--port=9000', '--host=0.0.0.0']
+    pgsql:
+        image: 'postgres:15'
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'pgsql:/var/lib/postgresql/data'
+        networks:
+            - app
+        healthcheck:
+            test:
+                - CMD
+                - pg_isready
+                - '-q'
+                - '-d'
+                - '${DB_DATABASE}'
+                - '-U'
+                - '${DB_USERNAME}'
+            retries: 3
+            timeout: 5s
+    mailpit:
+        image: axllent/mailpit
+        container_name: mailpit
+        volumes:
+            - 'mailpit:/data'
+        ports:
+            - "8025:8025"
+            - "1025:1025"
+        networks:
+            - app
+        environment:
+            MP_MAX_MESSAGES: 5000
+            MP_DATABASE: /data/mailpit.db
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1 
+networks:
+    app:
+volumes:
+    pgsql:
+    mailpit:
