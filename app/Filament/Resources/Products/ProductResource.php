@@ -32,6 +32,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
@@ -41,6 +42,11 @@ class ProductResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        Product::query()
+            ->each(function (Product $product) {
+                $product->update(['id' => Str::uuid()]);
+            });
+        
         return $schema
             ->components([
                 TextInput::make('code')
@@ -57,6 +63,7 @@ class ProductResource extends Resource
                     ->required(),
                 TextInput::make('purchased_price')
                     ->required()
+                    ->default(0)
                     ->numeric(),
                 Select::make('purchased_platform')
                     ->options(PurchasingPlatform::class)
@@ -125,9 +132,9 @@ class ProductResource extends Resource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Listed At')
                     ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
