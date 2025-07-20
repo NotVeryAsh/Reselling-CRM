@@ -12,6 +12,7 @@ enum SellingPlatform: string implements HasLabel
     case OFFERUP = 'offerup';
     case POSHMARK = 'poshmark';
     case IN_PERSON = 'in person';
+    case DEPOP = 'depop';
 
     public function getLabel(): ?string
     {

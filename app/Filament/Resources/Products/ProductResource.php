@@ -4,15 +4,19 @@ namespace App\Filament\Resources\Products;
 
 use App\Enums\PurchasingPlatform;
 use App\Enums\SellingPlatform;
+use App\Filament\Imports\ProductImporter;
 use App\Filament\Resources\Products\Pages\ManageProducts;
+use App\Filament\Resources\Products\Widgets\ProductsChart;
 use App\Models\Product;
 use BackedEnum;
+use Closure;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ImportAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
@@ -40,10 +44,16 @@ class ProductResource extends Resource
         return $schema
             ->components([
                 TextInput::make('code')
+                    ->unique()
                     ->required(),
                 TextInput::make('name')
-                    ->required(),
+                    ->autofocus()
+                    ->required()
+                    ->afterStateUpdatedJs(<<<'JS'
+                        $set('code', ($state ?? '').replaceAll(' ', '-').toLowerCase())
+                        JS),
                 DatePicker::make('purchased_at')
+                    ->default(now())
                     ->required(),
                 TextInput::make('purchased_price')
                     ->required()
@@ -90,19 +100,19 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(),
                 TextColumn::make('code')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('purchased_at')
                     ->date()
                     ->sortable(),
                 TextColumn::make('purchased_price')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => $state === '0.00' ? 'Free': $state),
                 TextColumn::make('purchased_platform')
                     ->searchable(),
                 TextColumn::make('sold_at')
@@ -112,7 +122,8 @@ class ProductResource extends Resource
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('sold_platform')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -142,6 +153,10 @@ class ProductResource extends Resource
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->importer(ProductImporter::class),
             ]);
     }
 

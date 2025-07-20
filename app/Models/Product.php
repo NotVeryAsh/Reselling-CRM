@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use SoftDeletes, HasUlids;
-    
+    use HasUlids, SoftDeletes;
+
     protected $fillable = [
         'name',
         'code',
@@ -20,9 +20,9 @@ class Product extends Model
         'purchased_platform',
         'sold_at',
         'sold_price',
-        'sold_platform'
+        'sold_platform',
     ];
-    
+
     protected $casts = [
         'purchased_at' => 'date',
         'purchased_platform' => PurchasingPlatform::class,

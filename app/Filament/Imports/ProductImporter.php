@@ -26,16 +26,14 @@ class ProductImporter extends Importer
                 ->rules(['required', 'date']),
             ImportColumn::make('purchased_price')
                 ->requiredMapping()
-                ->numeric()
-                ->rules(['required', 'integer']),
+                ->numeric(),
             ImportColumn::make('purchased_platform')
                 ->requiredMapping()
                 ->rules(['required', 'max:255']),
             ImportColumn::make('sold_at')
                 ->rules(['date']),
             ImportColumn::make('sold_price')
-                ->numeric()
-                ->rules(['integer']),
+                ->numeric(),
             ImportColumn::make('sold_platform')
                 ->rules(['max:255']),
         ];
@@ -50,10 +48,10 @@ class ProductImporter extends Importer
 
     public static function getCompletedNotificationBody(Import $import): string
     {
-        $body = 'Your product import has completed and ' . Number::format($import->successful_rows) . ' ' . str('row')->plural($import->successful_rows) . ' imported.';
+        $body = 'Your product import has completed and '.Number::format($import->successful_rows).' '.str('row')->plural($import->successful_rows).' imported.';
 
         if ($failedRowsCount = $import->getFailedRowsCount()) {
-            $body .= ' ' . Number::format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to import.';
+            $body .= ' '.Number::format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to import.';
         }
 
         return $body;
