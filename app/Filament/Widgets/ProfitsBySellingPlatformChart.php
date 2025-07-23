@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ProfitsBySellingPlatformChart extends ChartWidget
 {
     protected ?string $heading = 'Profits By Selling Platform';
-    protected static ?int $sort = 6;
+    protected static ?int $sort = 7;
 
     protected function getData(): array
     {

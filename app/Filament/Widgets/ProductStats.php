@@ -27,7 +27,8 @@ class ProductStats extends StatsOverviewWidget
             $this->getLongestDaysCurrentlyInInventory(),
             $this->getCurrentProfits(),
             $this->getHighestProfitableProduct(),
-            $this->getLeastProfitableProduct()
+            $this->getLeastProfitableProduct(),
+            $this->getOverallProfit()
         ];
     }
     
@@ -98,7 +99,7 @@ class ProductStats extends StatsOverviewWidget
     private function getCurrentProfits(): Stat
     {
         $profits = $this->profits->sum('profit');
-        return Stat::make('Current profits', '$' . $profits);
+        return Stat::make('Profit on sold items', '$' . $profits);
     }
 
     private function getHighestProfitableProduct(): Stat
@@ -112,5 +113,20 @@ class ProductStats extends StatsOverviewWidget
     {
         $leastProfitable = $this->profits->sortBy('profit')->first();
         return Stat::make('Least profitable product', "$leastProfitable->name : $$leastProfitable->profit");
+    }
+    
+    private function getOverallProfit(): Stat
+    {
+        $products = Product::query()
+            ->select(['name', 'purchased_price', 'sold_price'])
+            ->notOwnItems()
+            ->get()
+            ->map(function (Product $product) {
+                $product->profit = $product->sold_price - $product->purchased_price;
+                return $product;
+            })
+            ->sum('profit');
+
+        return Stat::make('Overall profit', "$$products");
     }
 }

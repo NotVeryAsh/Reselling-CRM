@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class SoldOwnItemsChart extends ChartWidget
 {
-    protected static ?int $sort = 5;
+    protected static ?int $sort = 6;
     protected ?string $heading = 'Sold Own Items';
 
     protected function getData(): array
