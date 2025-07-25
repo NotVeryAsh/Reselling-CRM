@@ -6,13 +6,14 @@ use App\Models\Product;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ProfitsOverTimeChart extends ChartWidget
+class UnsoldProductCountOverTimeChart extends ChartWidget
 {
-    protected static ?int $sort = 3;
-    protected ?string $heading = 'Profits Over Time';
+    protected static ?int $sort = 4;
+    protected ?string $heading = 'Unsold Product Count Over Time';
     
     public ?string $filter = 'day';
     
@@ -27,9 +28,9 @@ class ProfitsOverTimeChart extends ChartWidget
     }
     
     protected function getData(): array
-    {
+    {        
         $filter = $this->filter;
-        
+
         $method = 'sub' . ucwords($filter) . 's';
         $unit = match ($filter) {
             'day' => 30,
@@ -40,21 +41,23 @@ class ProfitsOverTimeChart extends ChartWidget
         };
 
         $periods = CarbonPeriod::create(now()->$method($unit), "1 $filter", now());
-        
+
         $time = $filter === 'day' ? 'DOY' : $filter;
         
+        // TODO Refactor query - it seems to miss one record (displays 73 unsold items instead of 74) 
         $platforms = Product::query()
-            ->select(DB::raw("extract($time from sold_at) as $filter, extract(year from sold_at) as year, sum(purchased_price) as purchased_price, sum(sold_price) as sold_price"))
+            ->select(DB::raw("extract($time from purchased_at) as $filter, extract(year from purchased_at) as year, count(code) as count"))
             ->notOwnItems()
+            ->unsold()
             ->groupBy($filter, 'year')
-            ->limit($unit)
             ->get()
             ->filter(fn (Product $product) => !is_null($product->$filter))
             ->map(function (Product $platform) use($filter) {
                 $platform->$filter = Carbon::create()->year(intval($platform->year))->$filter((int) $platform->$filter);
-                $platform->profit = $platform->sold_price - $platform->purchased_price;
                 return $platform;
-            });
+            })
+            ->flatten()
+            ->filter(fn ($product) => $product instanceof Product && $product->$filter instanceof Carbon);
 
         $results = collect();
 
@@ -70,26 +73,26 @@ class ProfitsOverTimeChart extends ChartWidget
 
             $dateFormat = $this->getDateFriendlyFormat($period);
 
-            $count = $platform?->profit ?? 0;
+            $count = $platform?->count ?? 0;
             $currentCount += $count;
             
             $results->push([
                 $filter => $dateFormat,
-                'profit' => $currentCount 
+                'count' => $currentCount
             ]);
         });
-
+        
         return [
             'datasets' => [
                 [
-                    'label' => 'Profit',
-                    'data' => $results->pluck('profit')->toArray(),
+                    'label' => 'Amount',
+                    'data' => $results->pluck('count')->toArray(),
                 ],
             ],
             'labels' => $results->pluck($filter)->toArray(),
         ];
     }
-    
+
     private function getDateFriendlyFormat(Carbon $date): string
     {
         return match ($this->filter) {
