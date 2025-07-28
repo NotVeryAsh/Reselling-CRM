@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class ProductStats extends StatsOverviewWidget
 {
-    private Collection $profits;
+    public Collection $profits;
     protected static ?int $sort = 1;
     
     function __construct()
@@ -32,7 +32,7 @@ class ProductStats extends StatsOverviewWidget
         ];
     }
     
-    private function getSoldAndUnsoldItemPercentage(): Stat
+    public function getSoldAndUnsoldItemPercentage(): Stat
     {
         $sold = Product::query()->sold()->count();
         $unsold = Product::query()->unsold()->count();
@@ -41,7 +41,7 @@ class ProductStats extends StatsOverviewWidget
         return Stat::make('Sold-Unsold Item %', sprintf('%s : %s - %s%%', $sold, $unsold, $percent));
     }
     
-    private function getDaysInInventory(): Collection
+    public function getDaysInInventory(): Collection
     {
         return Product::query()
             ->select(['name', 'purchased_at', 'sold_at'])
@@ -55,35 +55,34 @@ class ProductStats extends StatsOverviewWidget
             });
     }
     
-    private function getAverageDaysInInventory(): Stat
+    public function getAverageDaysInInventory(): Stat
     {
         $averageDays = $this->getDaysInInventory()
-            ->pluck('days_in_inventory')
-            ->first();
+            ->average('days_in_inventory');
         
         return Stat::make('Average amount of days in inventory', $averageDays);
     }
     
-    private function getLongestDaysInInventory(): Stat
+    public function getLongestDaysInInventory(): Stat
     {
         $longestDays = $this->getDaysInInventory()
             ->sortByDesc('days_in_inventory')
             ->first();
 
-        return Stat::make('Longest Days in inventory', "$longestDays->name : $longestDays->days_in_inventory days");
+        return Stat::make('Longest days in inventory', "$longestDays->name : $longestDays->days_in_inventory days");
     }
 
-    private function getLongestDaysCurrentlyInInventory(): Stat
+    public function getLongestDaysCurrentlyInInventory(): Stat
     {
         $longestDays = $this->getDaysInInventory()
             ->whereNull('sold_at')
             ->sortByDesc('days_in_inventory')
             ->first();
         
-        return Stat::make('Longest Currently in inventory', "$longestDays->name : $longestDays->days_in_inventory days");
+        return Stat::make('Longest days currently in inventory', "$longestDays->name : $longestDays->days_in_inventory days");
     }
     
-    private function getProfits(): Collection
+    public function getProfits(): Collection
     {
         return Product::query()
             ->select(['name', 'purchased_price', 'sold_price'])
@@ -96,26 +95,26 @@ class ProductStats extends StatsOverviewWidget
             });
     }
     
-    private function getCurrentProfits(): Stat
+    public function getCurrentProfits(): Stat
     {
         $profits = $this->profits->sum('profit');
         return Stat::make('Profit on sold items', '$' . $profits);
     }
 
-    private function getHighestProfitableProduct(): Stat
+    public function getHighestProfitableProduct(): Stat
     {
         $highesProfitable = $this->profits->sortByDesc('profit')->first();
         
         return Stat::make('Most profitable product', "$highesProfitable->name : $$highesProfitable->profit");
     }
 
-    private function getLeastProfitableProduct(): Stat
+    public function getLeastProfitableProduct(): Stat
     {
         $leastProfitable = $this->profits->sortBy('profit')->first();
         return Stat::make('Least profitable product', "$leastProfitable->name : $$leastProfitable->profit");
     }
     
-    private function getOverallProfit(): Stat
+    public function getOverallProfit(): Stat
     {
         $products = Product::query()
             ->select(['name', 'purchased_price', 'sold_price'])
