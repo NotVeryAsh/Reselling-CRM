@@ -11,15 +11,16 @@ use Illuminate\Support\Collection;
 class ProductStats extends StatsOverviewWidget
 {
     public Collection $profits;
+
     protected static ?int $sort = 1;
-    
-    function __construct()
+
+    public function __construct()
     {
         $this->profits = $this->getProfits();
     }
 
     protected function getStats(): array
-    {        
+    {
         return [
             $this->getSoldAndUnsoldItemPercentage(),
             $this->getAverageDaysInInventory(),
@@ -28,41 +29,42 @@ class ProductStats extends StatsOverviewWidget
             $this->getCurrentProfits(),
             $this->getHighestProfitableProduct(),
             $this->getLeastProfitableProduct(),
-            $this->getOverallProfit()
+            $this->getOverallProfit(),
         ];
     }
-    
+
     public function getSoldAndUnsoldItemPercentage(): Stat
     {
         $sold = Product::query()->sold()->count();
         $unsold = Product::query()->unsold()->count();
         $percent = number_format(($sold / ($sold + $unsold)) * 100);
-        
+
         return Stat::make('Sold-Unsold Item %', sprintf('%s : %s - %s%%', $sold, $unsold, $percent));
     }
-    
+
     public function getDaysInInventory(): Collection
     {
         return Product::query()
             ->select(['name', 'purchased_at', 'sold_at'])
             ->notOwnItems()
             ->get()
-            ->map(function(Product $product) {
+            ->map(function (Product $product) {
                 $start = Carbon::parse($product->purchased_at);
                 $end = Carbon::parse($product->sold_at ?? now());
                 $product->days_in_inventory = max(1, ceil($start->diffInDays($end)));
+
                 return $product;
             });
     }
-    
+
     public function getAverageDaysInInventory(): Stat
     {
         $averageDays = $this->getDaysInInventory()
             ->average('days_in_inventory');
-        
+
         return Stat::make('Average amount of days in inventory', $averageDays);
     }
-    
+
     public function getLongestDaysInInventory(): Stat
     {
         $longestDays = $this->getDaysInInventory()
@@ -78,10 +80,10 @@ class ProductStats extends StatsOverviewWidget
             ->whereNull('sold_at')
             ->sortByDesc('days_in_inventory')
             ->first();
-        
+
         return Stat::make('Longest days currently in inventory', "$longestDays->name : $longestDays->days_in_inventory days");
     }
-    
+
     public function getProfits(): Collection
     {
         return Product::query()
@@ -91,29 +93,32 @@ class ProductStats extends StatsOverviewWidget
             ->get()
             ->map(function (Product $product) {
                 $product->profit = $product->sold_price - $product->purchased_price;
+
                 return $product;
             });
     }
-    
+
     public function getCurrentProfits(): Stat
     {
         $profits = $this->profits->sum('profit');
-        return Stat::make('Profit on sold items', '$' . $profits);
+
+        return Stat::make('Profit on sold items', '$'.$profits);
     }
 
     public function getHighestProfitableProduct(): Stat
     {
         $highesProfitable = $this->profits->sortByDesc('profit')->first();
-        
+
         return Stat::make('Most profitable product', "$highesProfitable->name : $$highesProfitable->profit");
     }
 
     public function getLeastProfitableProduct(): Stat
     {
         $leastProfitable = $this->profits->sortBy('profit')->first();
+
         return Stat::make('Least profitable product', "$leastProfitable->name : $$leastProfitable->profit");
     }
-    
+
     public function getOverallProfit(): Stat
     {
         $products = Product::query()
@@ -122,6 +127,7 @@ class ProductStats extends StatsOverviewWidget
             ->get()
             ->map(function (Product $product) {
                 $product->profit = $product->sold_price - $product->purchased_price;
+
                 return $product;
             })
             ->sum('profit');

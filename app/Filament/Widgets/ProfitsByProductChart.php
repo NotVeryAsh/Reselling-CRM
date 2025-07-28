@@ -8,6 +8,7 @@ use Filament\Widgets\ChartWidget;
 class ProfitsByProductChart extends ChartWidget
 {
     protected ?string $heading = 'Profits By Product';
+
     protected static ?int $sort = 2;
 
     protected function getData(): array
@@ -17,9 +18,10 @@ class ProfitsByProductChart extends ChartWidget
             ->notOwnItems()
             ->sold()
             ->get()
-            ->map(function (Product $product) { 
+            ->map(function (Product $product) {
                 $product->profit = $product->sold_price - $product->purchased_price;
                 $product->diff = $product->sold_price - $product->profit;
+
                 return $product;
             });
 
@@ -34,7 +36,7 @@ class ProfitsByProductChart extends ChartWidget
                 [
                     'label' => 'Sold Price',
                     'data' => $products->pluck('diff')->toArray(),
-                ]
+                ],
             ],
             'labels' => $products->pluck('name')->toArray(),
         ];

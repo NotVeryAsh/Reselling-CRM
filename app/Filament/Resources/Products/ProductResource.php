@@ -6,10 +6,8 @@ use App\Enums\PurchasingPlatform;
 use App\Enums\SellingPlatform;
 use App\Filament\Imports\ProductImporter;
 use App\Filament\Resources\Products\Pages\ManageProducts;
-use App\Filament\Resources\Products\Widgets\ProductsChart;
 use App\Models\Product;
 use BackedEnum;
-use Closure;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -46,7 +44,7 @@ class ProductResource extends Resource
             ->each(function (Product $product) {
                 $product->update(['id' => Str::uuid()]);
             });
-        
+
         return $schema
             ->components([
                 TextInput::make('code')
@@ -119,7 +117,7 @@ class ProductResource extends Resource
                 TextColumn::make('purchased_price')
                     ->numeric()
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => $state === '0.00' ? 'Free': $state),
+                    ->formatStateUsing(fn ($state) => $state === '0.00' ? 'Free' : $state),
                 TextColumn::make('purchased_platform')
                     ->searchable(),
                 TextColumn::make('sold_at')

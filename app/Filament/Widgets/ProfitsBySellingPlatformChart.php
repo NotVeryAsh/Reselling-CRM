@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ProfitsBySellingPlatformChart extends ChartWidget
 {
     protected ?string $heading = 'Profits By Selling Platform';
+
     protected static ?int $sort = 7;
 
     protected function getData(): array
@@ -22,6 +23,7 @@ class ProfitsBySellingPlatformChart extends ChartWidget
             ->map(function (Product $platform) {
                 $platform->profit = $platform->sold_price - $platform->purchased_price;
                 $platform->platform = $platform->sold_platform->getLabel();
+
                 return $platform;
             });
 
