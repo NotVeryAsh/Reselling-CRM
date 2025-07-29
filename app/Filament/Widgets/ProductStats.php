@@ -109,7 +109,7 @@ class ProductStats extends StatsOverviewWidget
     {
         $highesProfitable = $this->profits->sortByDesc('profit')->first();
 
-        return Stat::make('Most profitable product', "$highesProfitable->name : $$highesProfitable->profit");
+        return Stat::make('Most profitable product', "$highesProfitable->name : $highesProfitable->profit");
     }
 
     public function getLeastProfitableProduct(): Stat
