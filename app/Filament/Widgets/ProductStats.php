@@ -54,8 +54,8 @@ class ProductStats extends StatsOverviewWidget
 
     public function getAverageDaysInInventory(): Stat
     {
-        $averageDays = $this->getDaysInInventory()
-            ->average('days_in_inventory');
+        $averageDays = number_format($this->getDaysInInventory()
+            ->average('days_in_inventory'), 2);
 
         return Stat::make('Average amount of days in inventory', $averageDays);
     }
@@ -104,7 +104,7 @@ class ProductStats extends StatsOverviewWidget
     {
         $highesProfitable = $this->getProfits()->sortByDesc('profit')->first();
 
-        return Stat::make('Most profitable product', "$highesProfitable->name : $highesProfitable->profit");
+        return Stat::make('Most profitable product', "$highesProfitable->name : $$highesProfitable->profit");
     }
 
     public function getLeastProfitableProduct(): Stat
