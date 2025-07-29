@@ -26,7 +26,7 @@ class ProfitsOverTimeChart extends ChartWidget
         ];
     }
 
-    protected function getData(): array
+    public function getData(): array
     {
         $filter = $this->filter;
 

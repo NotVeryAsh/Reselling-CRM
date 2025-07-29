@@ -11,7 +11,7 @@ class ProfitsByProductChart extends ChartWidget
 
     protected static ?int $sort = 2;
 
-    protected function getData(): array
+    public function getData(): array
     {
         $products = Product::query()
             ->select(['name', 'purchased_price', 'sold_price'])
@@ -20,10 +20,9 @@ class ProfitsByProductChart extends ChartWidget
             ->get()
             ->map(function (Product $product) {
                 $product->profit = $product->sold_price - $product->purchased_price;
-                $product->diff = $product->sold_price - $product->profit;
-
                 return $product;
-            });
+            })
+            ->sortByDesc('profit');
 
         return [
             'datasets' => [
@@ -35,7 +34,7 @@ class ProfitsByProductChart extends ChartWidget
                 ],
                 [
                     'label' => 'Sold Price',
-                    'data' => $products->pluck('diff')->toArray(),
+                    'data' => $products->pluck('purchased_price')->toArray(),
                 ],
             ],
             'labels' => $products->pluck('name')->toArray(),

@@ -12,7 +12,7 @@ class ProfitsBySellingPlatformChart extends ChartWidget
 
     protected static ?int $sort = 7;
 
-    protected function getData(): array
+    public function getData(): array
     {
         $platforms = Product::query()
             ->select(DB::raw('sold_platform, sum(purchased_price) as purchased_price, sum(sold_price) as sold_price'))
@@ -25,7 +25,8 @@ class ProfitsBySellingPlatformChart extends ChartWidget
                 $platform->platform = $platform->sold_platform->getLabel();
 
                 return $platform;
-            });
+            })
+            ->sortByDesc('profit');
 
         return [
             'datasets' => [

@@ -6,13 +6,13 @@ use App\Models\Product;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 
-class LongestToSellProducts extends ChartWidget
+class LongestToSellProductsChart extends ChartWidget
 {
     protected ?string $heading = 'Longest To Sell Products';
 
     protected static ?int $sort = 5;
 
-    protected function getData(): array
+    public function getData(): array
     {
         $products = Product::query()
             ->select(['name', 'purchased_at', 'sold_at'])
