@@ -14,11 +14,6 @@ class ProductStats extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
-    public function __construct()
-    {
-        $this->profits = $this->getProfits();
-    }
-
     protected function getStats(): array
     {
         return [
@@ -100,21 +95,21 @@ class ProductStats extends StatsOverviewWidget
 
     public function getCurrentProfits(): Stat
     {
-        $profits = $this->profits->sum('profit');
+        $profits = $this->getProfits()->sum('profit');
 
         return Stat::make('Profit on sold items', '$'.$profits);
     }
 
     public function getHighestProfitableProduct(): Stat
     {
-        $highesProfitable = $this->profits->sortByDesc('profit')->first();
+        $highesProfitable = $this->getProfits()->sortByDesc('profit')->first();
 
         return Stat::make('Most profitable product', "$highesProfitable->name : $highesProfitable->profit");
     }
 
     public function getLeastProfitableProduct(): Stat
     {
-        $leastProfitable = $this->profits->sortBy('profit')->first();
+        $leastProfitable = $this->getProfits()->sortBy('profit')->first();
 
         return Stat::make('Least profitable product', "$leastProfitable->name : $$leastProfitable->profit");
     }
